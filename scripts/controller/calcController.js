@@ -1,7 +1,9 @@
+//@collapse
 class CalcController{
     
     constructor(){
         
+        this._audio = new Audio('click.mp3');
         this._lastOperator = '';
         this._lastNumber = '';
         this._operation = [];
@@ -10,6 +12,7 @@ class CalcController{
         this._dateEl = document.querySelector("#data");
         this._timeEl = document.querySelector("#hora");
         this._currentDate;
+        this._audioOnOff = false;
         this.initialize();
         this.initButtonsEvents();
         this.initKeyboard();
@@ -41,6 +44,12 @@ class CalcController{
         }, 1020)
         this.setLastNumberToDisplay();
         this.pasteFromClipboard();
+
+        document.querySelectorAll('.btn-ac').forEach(btn =>{
+            btn.addEventListener('dblclick', e=> {
+                this.toggleAudio();
+            });
+        });
     }
     
     initButtonsEvents(){
@@ -67,6 +76,8 @@ class CalcController{
 
     initKeyboard(){
         document.addEventListener('keyup', e =>{
+
+            this.playAudio();
 
             switch(e.key){
 
@@ -130,6 +141,17 @@ class CalcController{
         });
     }
 
+    toggleAudio(){
+        this.audioOnOff = !this._audioOnOff;
+    }
+
+    playAudio(){
+        if(this._audio){
+            this._audio.currentTime = 0;
+            this._audio.play();
+        }
+    }
+
     getLastOperation(){
         return this._operation[this._operation.length -1];
     }
@@ -152,7 +174,13 @@ class CalcController{
     
     getResult(){
 
-        return eval(this._operation.join(""));
+        try{
+            return eval(this._operation.join(""));
+        }catch(e){
+            setTimeout(() => {
+                this.setError();
+            }, 1);
+        }
     }
 
     getLastItem(isOperator = true){
@@ -173,6 +201,7 @@ class CalcController{
         }
 
         return lastItem;
+    
     }
 
 //-------------------------Operations-----------------------
@@ -189,9 +218,7 @@ class CalcController{
         this._operation.push(value);
 
         if(this._operation.length > 3){
-
             this.calc();
-
         }
     }
 
@@ -250,7 +277,6 @@ class CalcController{
             }
 
         }else{
-
             if(this.isOperation(value)){
                 this.pushOperation(value);
             }else{
@@ -276,6 +302,8 @@ class CalcController{
     }
 
     execBtn(value){
+
+        this.playAudio();
         switch(value){
 
             case 'ac':
@@ -347,6 +375,12 @@ class CalcController{
     // ---------------------DisplayCalc---------------------
 
     get displayCalc(){
+
+        if(value.length > 10){
+            this.setError;
+            return false;
+        }
+
         return this._displayCalcEl.innerHTML;
     }
 
